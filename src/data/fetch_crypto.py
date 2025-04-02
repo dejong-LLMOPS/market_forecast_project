@@ -1,4 +1,3 @@
-# Import required libraries
 import os                   # For file and OS interactions
 import requests             # To make HTTP requests to the CoinCap API
 import pandas as pd         # For data manipulation
@@ -26,7 +25,9 @@ def fetch_crypto_data(coin_id, filename):
     if os.path.exists(filename):
         # Read existing data from CSV
         df_existing = pd.read_csv(filename)
-        # Convert 'date' column to datetime and get the most recent date
+        # Convert the 'date' column to datetime objects and then extract the date
+        df_existing['date'] = pd.to_datetime(df_existing['date']).dt.date
+        # Get the most recent date in the existing data
         last_date = pd.to_datetime(df_existing['date']).max()
         # Set new start date as one day after the last date in the file
         start_date = last_date + pd.Timedelta(days=1)
@@ -85,7 +86,9 @@ def fetch_crypto_data(coin_id, filename):
 
     # Append to existing data if file exists; otherwise, use new data directly
     if os.path.exists(filename):
+        # Read the CSV again and convert date to ensure consistent type
         df_existing = pd.read_csv(filename)
+        df_existing['date'] = pd.to_datetime(df_existing['date']).dt.date
         df_final = pd.concat([df_existing, df], ignore_index=True)
         # Remove duplicate dates, keeping the latest records
         df_final.drop_duplicates(subset="date", keep="last", inplace=True)
@@ -98,3 +101,5 @@ def fetch_crypto_data(coin_id, filename):
     df_final.to_csv(filename, index=False)
     print(f"Data for {coin_id} updated and saved to {filename}")
 
+# Example usage:
+# fetch_crypto_data("bitcoin", "bitcoin_data.csv")
